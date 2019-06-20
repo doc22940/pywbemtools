@@ -2003,3 +2003,64 @@ def test_print_insts_as_table(testcase, args, kwargs, exp_tbl):
 # TODO Test compare with errors
 
 # NOTE: Format table is in test_tableformat.py
+
+
+TESTCASES_ASSOC_SHRUB = [
+    # TESTCASES for associatonshrub
+    #
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function and response:
+    #   * pl_str: tuple of strings defining properties
+    #   * exp_pl: expected list return.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    ('verify simple property list with 2 entries',
+     dict(pl_str=("abc,def",), exp_pl=['abc', 'def']),
+     None, None, True),
+
+    ('verify propertylist with single property entry',
+     dict(pl_str=("abc",), exp_pl=['abc']),
+     None, None, True),
+
+    ('verify multiple properties',
+     dict(pl_str=("abc", "def"), exp_pl=['abc', 'def']),
+     None, None, True),
+
+    ('verify multiple properties and both multiple in on option and multiple '
+     'options.',
+     dict(pl_str=None, exp_pl=None),
+     None, None, True),
+
+    ('verify multiple properties and both multiple in on option and multiple '
+     'options.',
+     dict(pl_str=("ab", "def", "xyz,rst"), exp_pl=['ab', 'def', 'xyz', 'rst']),
+     None, None, True),
+
+
+    ('verify empty propertylist',
+     dict(pl_str=("",), exp_pl=[]),
+     None, None, False),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_ASSOC_SHRUB)
+@simplified_test_function
+def test_associatonshrub(testcase, pl_str, exp_pl):
+    """Test for resolve_propertylist function"""
+    # The code to be tested
+
+    # wraps the test string in a tuple because that is the way the
+    # propertylist option returns the list since it is a multiple type
+    # option
+    plist = resolve_propertylist(pl_str)
+
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
+
+    assert plist == exp_pl

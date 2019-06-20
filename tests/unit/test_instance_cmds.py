@@ -203,6 +203,18 @@ INSTANCE_REFERENCES_HELP_LINES = [
     CMD_OPTION_KEYS_HELP_LINE,
 ]
 
+INSTANCE_SHRUB_HELP_LINES = [
+    'Usage: pywbemcli instance shrub [COMMAND-OPTIONS] INSTANCENAME',
+    'Show the association shrub for INSTANCENAME.',
+    '--ac, --assoc-class CLASSNAME   Filter the result set by association',
+    '--rc, --result-class CLASSNAME Filter the result set by result class',
+    '-r, --role PROPERTYNAME Filter the result set by source end role',
+    '--rr, --result-role PROPERTYNAME',
+    # CMD_OPTION_NAMES_ONLY_HELP_LINE,
+    CMD_OPTION_NAMESPACE_HELP_LINE,
+    CMD_OPTION_HELP_HELP_LINE,
+]
+
 ENUM_INSTANCE_RESP = """instance of CIM_Foo {
    InstanceID = "CIM_Foo1";
    IntegerProp = 1;
@@ -330,6 +342,31 @@ instance of TST_Person {
 };
 
 """
+
+
+SIMPLE_SHRUB_TREE = """TST_Person.name="Mike"
+ +-- parent(Role)
+ |   +-- TST_Lineage(AssocClass)
+ |       +-- child(ResultRole)
+ |           +-- TST_Person(ResultClass)(2 insts)
+ |               +-- TST_Person.name="Sofi"
+ |               +-- TST_Person.name="Gabi"
+ +-- member(Role)
+     +-- TST_MemberOfFamilyCollection(AssocClass)
+         +-- family(ResultRole)
+             +-- TST_FamilyCollection(ResultClass)(1 insts)
+                 +-- TST_FamilyCollection.name="Family2"
+"""
+
+SIMPLE_SHRUB_TABLE = []
+'Shrub of root/cimv2:TST_Person.name="Mike"',
+'Role    Reference Classes ResultRole Associated Classes    '
+'Assoc Inst paths',
+'parent  TST_Lineage                   child         TST_Person           '
+'TST_Person.name="Sofi" TST_Person.name="Gabi"',
+'member  TST_MemberOfFamilyCollection  family        TST_FamilyCollection  '
+'TST_FamilyCollection.name="Family2"'
+
 
 # TODO: Add tests for output format xml, repr, txt
 
@@ -2070,6 +2107,31 @@ interop      TST_MemberOfFamilyCollection  3
       'rc': 1,
       'test': 'innows'},
      [SIMPLE_MOCK_FILE], OK],
+
+    #
+    #   Test the shrub subcommand
+    #
+    ['Verify instance subcommand shrub, --help response',
+     ['shrub', '--help'],
+     {'stdout': INSTANCE_SHRUB_HELP_LINES,
+      'rc': 0,
+      'test': 'innows'},
+     None, OK],
+
+    ['Verify instance subcommand shrub, simple tree',
+     ['shrub', '//FakedUrl/root/cimv2:TST_Person.name="Mike"'],
+     {'stdout': SIMPLE_SHRUB_TREE,
+      'rc': 0,
+      'test': 'innows'},
+     ASSOC_MOCK_FILE, OK],
+
+    ['Verify instance subcommand shrub, simple table',
+     {'args': ['shrub', '//FakedUrl/root/cimv2:TST_Person.name="Mike"'],
+      'general': ['--output-format', 'plain']},
+     {'stdout': SIMPLE_SHRUB_TABLE,
+      'rc': 0,
+      'test': 'innows'},
+     ASSOC_MOCK_FILE, RUN],
 ]
 
 
