@@ -45,6 +45,7 @@ ASSOC_MOCK_FILE = 'simple_assoc_mock_model.mof'
 ALLTYPES_MOCK_FILE = 'all_types.mof'
 QUALIFIER_FILTER_MODEL = 'qualifier_filter_model.mof'
 INVOKE_METHOD_MOCK_FILE = "simple_mock_invokemethod.py"
+COMPLEX_ASSOC_MODEL = "complex_assoc_model.mof"
 MOCK_PROMPT_0_FILE = "mock_prompt_0.py"
 MOCK_PROMPT_PICK_RESPONSE_3_FILE = 'mock_prompt_pick_response_3.py'
 MOCK_PROMPT_PICK_RESPONSE_11_FILE = 'mock_prompt_pick_response_11.py'
@@ -358,21 +359,47 @@ SIMPLE_SHRUB_TREE = """TST_Person.name="Mike"
                  +-- TST_FamilyCollection.name="Family2"
 """
 
+COMPLEX_SHRUB_TABLE = [
+'Shrub of root/cimv2:TST_EP.InstanceID=1',
+'Role       Reference Class    ResultRole    Associated Class    Assoc Inst paths',  # noqa E501
+'Initiator  TST_A3             Target        TST_EP              TST_EP.InstanceID=2(refinst:0)',  # noqa E501
+'                                                                TST_EP.InstanceID=5(refinst:1)',  # noqa E501
+'                                                                TST_EP.InstanceID=7(refinst:2)',  # noqa E501
+'Initiator  TST_A3             LogicalUnit   TST_LD              TST_LD.InstanceID=3(refinst:0)',  # noqa E501
+'                                                                TST_LD.InstanceID=6(refinst:1)',  # noqa E501
+'                                                                TST_LD.InstanceID=8(refinst:2)']  # noqa E501
+
+
+COMPLEX_SHRUB_TREE = """root/cimv2:TST_EP.InstanceID=1
+ +-- Initiator(Role)
+     +-- TST_A3(AssocClass)
+         +-- Target(ResultRole)
+         |   +-- TST_EP(ResultClass)(3 insts)
+         |       +-- TST_EP.InstanceID=2(refinst:0)
+         |       +-- TST_EP.InstanceID=5(refinst:1)
+         |       +-- TST_EP.InstanceID=7(refinst:2)
+         +-- LogicalUnit(ResultRole)
+             +-- TST_LD(ResultClass)(3 insts)
+                 +-- TST_LD.InstanceID=3(refinst:0)
+                 +-- TST_LD.InstanceID=6(refinst:1)
+                 +-- TST_LD.InstanceID=8(refinst:2)
+"""
+
 SIMPLE_SHRUB_TABLE = []
 'Shrub of root/cimv2:TST_Person.name="Mike"',
-'Role    Reference Classes ResultRole Associated Classes    '
+'Role    Reference Classes ResultRole Associated Classes',
 'Assoc Inst paths',
-'parent  TST_Lineage                   child         TST_Person           '
+'parent  TST_Lineage                   child         TST_Person,',
 'TST_Person.name="Sofi" TST_Person.name="Gabi"',
-'member  TST_MemberOfFamilyCollection  family        TST_FamilyCollection  '
-'TST_FamilyCollection.name="Family2"'
+'member  TST_MemberOfFamilyCollection  family        TST_FamilyCollection',
+'TST_FamilyCollection.name="Family2"',
 
 
 # TODO: Add tests for output format xml, repr, txt
 
 # pylint: enable=line-too-long
 
-OK = True     # mark tests OK when they execute correctly
+OK = False     # mark tests OK when they execute correctly
 RUN = True    # Mark OK = False and current test case being created RUN
 FAIL = False  # Any test currently FAILING or not tested yet
 
@@ -1957,7 +1984,7 @@ interop      TST_Personsub        4
 """,
       'rc': 0,
       'test': 'linennows'},
-     ASSOC_MOCK_FILE, RUN],
+     ASSOC_MOCK_FILE, OK],
 
     ['Verify instance command count *Person* with --association',
      {'args': ['count', '*TST_*', '--association'],
@@ -2118,12 +2145,13 @@ interop      TST_MemberOfFamilyCollection  3
       'test': 'innows'},
      None, OK],
 
+    # Test simple mock association
     ['Verify instance subcommand shrub, simple tree',
      ['shrub', '//FakedUrl/root/cimv2:TST_Person.name="Mike"'],
      {'stdout': SIMPLE_SHRUB_TREE,
       'rc': 0,
       'test': 'innows'},
-     ASSOC_MOCK_FILE, OK],
+     ASSOC_MOCK_FILE, RUN],
 
     ['Verify instance subcommand shrub, simple table',
      {'args': ['shrub', '//FakedUrl/root/cimv2:TST_Person.name="Mike"'],
@@ -2132,6 +2160,31 @@ interop      TST_MemberOfFamilyCollection  3
       'rc': 0,
       'test': 'innows'},
      ASSOC_MOCK_FILE, RUN],
+
+    ['Verify instance subcommand shrub, simple tree',
+     ['shrub', '//FakedUrl/root/cimv2:TST_Person.name="Mike"'],
+     {'stdout': SIMPLE_SHRUB_TREE,
+      'rc': 0,
+      'test': 'innows'},
+     ASSOC_MOCK_FILE, RUN],
+
+    # Test with a complex (ternary) association
+    ['Verify instance subcommand shrub, complex table',
+     {'args': ['shrub', '/root/cimv2:TST_EP', '--key', 'InstanceID=1'],
+      'general': ['--output-format', 'plain']},
+     {'stdout': COMPLEX_SHRUB_TABLE,
+      'rc': 0,
+      'test': 'innows'},
+     COMPLEX_ASSOC_MODEL, RUN],
+
+    ['Verify instance subcommand shrub, complex tree',
+     {'args': ['shrub', '//FakedUrl/root/cimv2:TST_EP.name="1"'],
+      'general': ['--output-format', 'plain']},
+     {'stdout': COMPLEX_SHRUB_TREE,
+      'rc': 0,
+      'test': 'innows'},
+     COMPLEX_ASSOC_MODEL, FAIL],
+
 ]
 
 

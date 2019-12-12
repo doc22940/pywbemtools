@@ -769,7 +769,8 @@ def get_instancename(context, instancename, options):
 
         except CIMError as ce:
             if ce.status_code == CIM_ERR_NOT_FOUND:
-                raise click.ClickException('Class "{}" not found'.format(cln))
+                raise click.ClickException('Class "{}" not found'.
+                                           format(classname))
         except ValueError as ve:
             raise click.ClickException('{}: {}'.format(
                 ve.__class__.__name__, ve))
